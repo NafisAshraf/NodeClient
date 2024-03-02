@@ -8,6 +8,20 @@ import glob
 import time
 import datetime
 
+import RPi.GPIO as GPIO
+
+# Define LED pin
+LED_PIN = 17
+
+# Set GPIO mode (BOARD or BCM)
+GPIO.setmode(GPIO.BOARD)  # Use BOARD numbering for clarity
+
+# Configure LED pin as output
+GPIO.setup(LED_PIN, GPIO.OUT)
+
+
+
+
 sio = socketio.AsyncClient()
 
 os.system('modprobe w1-gpio')
@@ -49,11 +63,32 @@ async def connect():
         sensor_data = await sensor_read_data()
         print(sensor_data)
         await sio.emit("sensorData", sensor_data)
-        await asyncio.sleep(1)  # Send data every second
+        await asyncio.sleep(30)  # Send data every second
 
 @sio.event
 async def disconnect():
+    GPIO.cleanup() 
     print("Disconnected from server")
+
+
+@sio.on("control-instructions")
+async def on_control_instructions(data):
+    print("Received control instructions:", data)
+
+    # Extract action from received data
+    action = data.get("action")
+
+    try:
+        if action == "A-ON":
+            GPIO.output(LED_PIN, GPIO.HIGH)  # Turn on LED
+            print("LED turned on")
+        elif action == "A-OFF":
+            GPIO.output(LED_PIN, GPIO.LOW)  # Turn off LED
+            print("LED turned off")
+        else:
+            print("Invalid action received")
+    except Exception as e:
+        print("Error controlling LED:", e)
 
 async def main():
     pc_ip_address = "172.20.10.3"
