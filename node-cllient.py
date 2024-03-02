@@ -10,14 +10,21 @@ import datetime
 
 import RPi.GPIO as GPIO
 
-# Define LED pin
-LED_PIN = 17
+A_pin = 17
+B_pin = 27  # Assign specific GPIO pin numbers for B, X, Y, and Start
+X_pin = 22
+Y_pin = 10
+Start_pin = 11
 
 # Set GPIO mode (BOARD or BCM)
 GPIO.setmode(GPIO.BOARD)  # Use BOARD numbering for clarity
 
-# Configure LED pin as output
-GPIO.setup(LED_PIN, GPIO.OUT)
+# Configure LED pins as outputs
+GPIO.setup(A_pin, GPIO.OUT)
+GPIO.setup(B_pin, GPIO.OUT)  # Add setup for the new pins
+GPIO.setup(X_pin, GPIO.OUT)
+GPIO.setup(Y_pin, GPIO.OUT)
+GPIO.setup(Start_pin, GPIO.OUT)
 
 
 
@@ -70,7 +77,6 @@ async def disconnect():
     GPIO.cleanup() 
     print("Disconnected from server")
 
-
 @sio.on("control-instructions")
 async def on_control_instructions(data):
     print("Received control instructions:", data)
@@ -80,11 +86,18 @@ async def on_control_instructions(data):
 
     try:
         if action == "A-ON":
-            GPIO.output(LED_PIN, GPIO.HIGH)  # Turn on LED
-            print("LED turned on")
+            GPIO.output(A_pin, GPIO.HIGH)  # Turn on LED A
+            print("LED A turned on")
         elif action == "A-OFF":
-            GPIO.output(LED_PIN, GPIO.LOW)  # Turn off LED
-            print("LED turned off")
+            GPIO.output(A_pin, GPIO.LOW)  # Turn off LED A
+            print("LED A turned off")
+        elif action == "B-ON":  # Add control for LED B
+            GPIO.output(B_pin, GPIO.HIGH)
+            print("LED B turned on")
+        elif action == "B-OFF":
+            GPIO.output(B_pin, GPIO.LOW)
+            print("LED B turned off")
+        # Similarly, add control logic for X_PIN, Y_PIN, and Start_PIN
         else:
             print("Invalid action received")
     except Exception as e:
